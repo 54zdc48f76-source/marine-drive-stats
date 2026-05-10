@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Marine Drive Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<style>
+/* fonts loaded inline below */
+:root {
+  --gd:#0d2b1a; --gm:#1a4d2e; --gb:#2d7a47; --gp:#c8e6d0;
+  --gold:#c9a84c; --gop:#f5e9c8; --godk:#7a5c1e;
+  --red:#c0392b; --rp:#fadbd8;
+  --bl:#1a5276; --bp:#d6eaf8;
+  --or:#d35400;
+  --cr:#f8f5ef; --dk:#111; --mg:#6b7280; --br:#d1d5db;
+  --sh:0 2px 12px rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--cr);color:var(--dk);min-height:100vh;-webkit-text-size-adjust:100%;}
+
+.topbar{background:var(--gd);color:white;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.topbar h1{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:22px;letter-spacing:2px;line-height:1;}
+.topbar p{font-size:11px;color:var(--gp);margin-top:2px;}
+.tb-r{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:28px;color:var(--gold);}
+
+.hole-nav{background:var(--gm);padding:8px 10px;display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.hole-nav::-webkit-scrollbar{display:none;}
+.hd{min-width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);border:2px solid transparent;transition:all .15s;flex-shrink:0;}
+.hd.cur{background:var(--gold);color:var(--gd);border-color:var(--gold);transform:scale(1.15);animation:pulse 2s infinite;}
+.hd.done{background:var(--gb);color:white;border-color:var(--gb);}
+.hd.pen{background:var(--red);color:white;border-color:var(--red);}
+.hd.part{background:rgba(201,168,76,.5);color:white;border-color:var(--gold);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.4);}50%{box-shadow:0 0 0 6px rgba(201,168,76,0);}}
+
+.screen{display:none;}.screen.active{display:block;}
+
+/* SETUP */
+.sp{padding:20px 16px 40px;}
+.card{background:white;border-radius:16px;padding:22px 18px;box-shadow:var(--sh);margin-bottom:14px;}
+.card h2{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:20px;color:var(--gm);letter-spacing:1.5px;margin-bottom:14px;border-bottom:2px solid var(--gp);padding-bottom:8px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--mg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.fg select,.fg input{width:100%;padding:12px 14px;border:2px solid var(--br);border-radius:10px;font-size:16px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--cr);color:var(--dk);outline:none;appearance:none;-webkit-appearance:none;}
+.fg select:focus,.fg input:focus{border-color:var(--gb);background:white;}
+.tgg{display:flex;gap:8px;}
+.tgb{flex:1;padding:14px;border:2px solid var(--br);border-radius:12px;background:var(--cr);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:600;cursor:pointer;text-align:center;color:var(--mg);}
+.tgb.on{background:var(--gm);border-color:var(--gm);color:white;}
+.tgb:active{transform:scale(.97);}
+
+.sct{width:100%;border-collapse:collapse;font-size:12px;}
+.sct th{background:var(--gd);color:var(--gold);font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:13px;letter-spacing:1px;padding:7px 4px;text-align:center;}
+.sct td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--br);font-weight:500;}
+.sct tr:nth-child(even) td{background:var(--cr);}
+.sct .sub td{background:var(--gp)!important;font-weight:700;color:var(--gd);font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:14px;}
+.p3{color:var(--bl);font-weight:700;}.p4{color:var(--gm);font-weight:700;}.p5{color:#7d3c98;font-weight:700;}
+.g1c{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:15px;color:var(--or);}
+
+.btn-s{width:100%;background:var(--gm);color:white;border:none;border-radius:14px;padding:18px;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer;margin-top:8px;box-shadow:0 4px 14px rgba(26,77,46,.35);}
+.btn-s:active{transform:scale(.98);}
+
+/* HOLE */
+.hs{padding:12px 14px 100px;}
+.rt{background:var(--gd);border-radius:12px;padding:10px 4px;display:flex;margin-bottom:12px;}
+.rti{text-align:center;flex:1;}
+.rtv{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:20px;color:var(--gold);line-height:1;}
+.rtl{font-size:10px;color:var(--gp);text-transform:uppercase;letter-spacing:.4px;}
+
+.hh{background:white;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;box-shadow:var(--sh);}
+.hi h2{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:36px;color:var(--gd);line-height:1;}
+.hi p{font-size:13px;color:var(--mg);font-weight:500;margin-top:2px;}
+.sw{text-align:center;}
+.sl{font-size:11px;color:var(--mg);text-transform:uppercase;letter-spacing:.8px;}
+.sc2{display:flex;align-items:center;gap:10px;justify-content:center;}
+.sn{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:52px;color:var(--dk);line-height:1;}
+.sb{width:40px;height:40px;border-radius:50%;border:none;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sb.m{background:var(--rp);color:var(--red);}
+.sb.p{background:var(--bp);color:var(--bl);}
+.sb:active{transform:scale(.9);}
+
+.ss{background:white;border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh);}
+.ss h3{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:16px;color:var(--gm);letter-spacing:1.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gp);}
+.dl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mg);margin:4px 0 8px;}
+
+.zb{background:var(--gop);border:1.5px solid var(--gold);border-radius:11px;padding:10px 14px;margin-bottom:12px;}
+.zt{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--godk);margin-bottom:4px;}
+.zby{display:flex;align-items:baseline;gap:8px;}
+.zn{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:34px;color:var(--or);line-height:1;}
+.zd{font-size:13px;font-weight:600;color:var(--godk);line-height:1.4;}
+
+.gr{display:flex;gap:8px;margin-bottom:6px;}
+.gl{font-size:13px;font-weight:600;min-width:58px;display:flex;align-items:center;color:var(--dk);}
+.gbs{display:flex;gap:6px;flex:1;}
+.gb{flex:1;padding:13px 4px;border:2px solid var(--br);border-radius:10px;background:var(--cr);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--mg);transition:all .12s;}
+.gb.sy{background:var(--gb);border-color:var(--gb);color:white;}
+.gb.sn2{background:var(--red);border-color:var(--red);color:white;}
+.gb.sp{background:var(--or);border-color:var(--or);color:white;}
+.gb.sna{background:var(--mg);border-color:var(--mg);color:white;}
+.gb:active{transform:scale(.96);}
+
+.cr2{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.clbl{font-size:14px;font-weight:600;}
+.ctr{display:flex;align-items:center;gap:14px;}
+.cb{width:38px;height:38px;border-radius:50%;border:none;font-size:20px;font-weight:700;cursor:pointer;}
+.cb.m{background:var(--rp);color:var(--red);}
+.cb.p{background:var(--bp);color:var(--bl);}
+.cb:active{transform:scale(.9);}
+.cn{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:32px;color:var(--dk);min-width:28px;text-align:center;}
+
+.spr{display:flex;align-items:center;gap:8px;}
+.spl{font-size:13px;font-weight:600;flex:1;}
+.spbs{display:flex;gap:6px;}
+.spb{padding:9px 10px;border:2px solid var(--br);border-radius:9px;background:var(--cr);font-size:13px;font-weight:600;cursor:pointer;color:var(--mg);}
+.spb.sm{background:var(--gb);border-color:var(--gb);color:white;}
+.spb.sx{background:var(--red);border-color:var(--red);color:white;}
+.spb.sna{background:var(--mg);border-color:var(--mg);color:white;}
+.spb:active{transform:scale(.96);}
+
+.ni{width:100%;border:2px solid var(--br);border-radius:10px;padding:10px 12px;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--cr);resize:none;outline:none;height:64px;}
+.ni:focus{border-color:var(--gb);background:white;}
+
+.bn{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--br);padding:12px 16px 20px;display:flex;gap:10px;z-index:200;}
+.nb{flex:1;padding:14px;border:none;border-radius:12px;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:18px;letter-spacing:1.5px;cursor:pointer;}
+.nb.pv{background:var(--cr);color:var(--gm);border:2px solid var(--gp);}
+.nb.nx{background:var(--gm);color:white;}
+.nb.fn{background:var(--gold);color:var(--gd);}
+.nb:active{transform:scale(.97);}
+
+/* SUMMARY */
+.sms{padding:16px 14px 40px;}
+.sh2{background:var(--gd);border-radius:16px;padding:20px;color:white;text-align:center;margin-bottom:14px;box-shadow:var(--sh);}
+.sh2 h2{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:26px;letter-spacing:2px;color:var(--gold);}
+.bs{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:72px;line-height:1;}
+.vp{font-size:18px;color:var(--gp);font-weight:500;}
+.mt{font-size:12px;color:rgba(255,255,255,.55);margin-top:6px;}
+
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.sbx{background:white;border-radius:12px;padding:14px;box-shadow:var(--sh);text-align:center;}
+.sbv{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:30px;line-height:1;}
+.sbl{font-size:11px;color:var(--mg);text-transform:uppercase;letter-spacing:.6px;margin-top:3px;line-height:1.3;}
+
+.stw{background:white;border-radius:14px;overflow:hidden;box-shadow:var(--sh);margin-bottom:14px;}
+.stw h3{background:var(--gm);color:white;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:16px;letter-spacing:1.5px;padding:10px 14px;}
+.st{width:100%;border-collapse:collapse;font-size:11px;}
+.st th{background:var(--gd);color:var(--gold);font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:11px;letter-spacing:.5px;padding:7px 2px;text-align:center;}
+.st td{padding:6px 2px;text-align:center;border-bottom:1px solid var(--br);}
+.st tr:nth-child(even) td{background:var(--cr);}
+.st .sr td{background:var(--gp)!important;font-weight:700;color:var(--gd);}
+.te{color:#7d3c98;font-weight:700;}.tb{color:var(--bl);font-weight:700;}
+.tp{color:var(--gb);font-weight:700;}.tbo{color:#b7950b;font-weight:600;}
+.td2{color:var(--red);font-weight:700;}.tw{color:#922b21;font-weight:700;}
+
+.ab{background:white;border-radius:14px;padding:16px;box-shadow:var(--sh);margin-bottom:14px;}
+.ab h3{font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:16px;color:var(--gm);letter-spacing:1.5px;margin-bottom:10px;}
+.ab textarea{width:100%;border:2px solid var(--br);border-radius:10px;padding:10px 12px;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:var(--cr);resize:none;outline:none;height:90px;}
+.ab textarea:focus{border-color:var(--gb);background:white;}
+
+.bex{width:100%;background:var(--gold);color:var(--gd);border:none;border-radius:14px;padding:18px;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 14px rgba(201,168,76,.35);}
+.bex:active{transform:scale(.98);}
+.bnw{width:100%;background:white;color:var(--gm);border:2px solid var(--gm);border-radius:14px;padding:16px;font-family:'Bebas Neue','Arial Narrow',Impact,sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;}
+.bnw:active{transform:scale(.98);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h1>Marine Drive</h1><p id="tb-sub">Stats Tracker</p></div>
+  <div class="tb-r" id="tb-hole">⛳</div>
+</div>
+<div class="hole-nav" id="hole-nav" style="display:none;"></div>
+
+<!-- ═══════════ SETUP ═══════════ -->
+<div class="screen active" id="screen-setup">
+<div class="sp">
+
+  <div class="card">
+    <h2>Round Details</h2>
+    <div class="fg">
+      <label>Date</label>
+      <input type="date" id="r-date">
+    </div>
+    <div class="fg">
+      <label>Tee</label>
+      <select id="r-tee" onchange="updateCard()">
+        <option value="Silver">Silver — Par 71 · 5,962 yds · Rating 69.0 · Slope 120</option>
+        <option value="Combo">Combo (Black/Silver) — Par 71 · 6,151 yds · Rating 69.4 · Slope 122</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Round</label>
+      <div class="tgg">
+        <button class="tgb on" id="b18" onclick="setH(18)">18 Holes</button>
+        <button class="tgb"    id="b9"  onclick="setH(9)">Front 9 Only</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="sc-h">Silver Tee — Par 71</h2>
+    <p style="font-size:11px;color:var(--mg);margin-bottom:10px;line-height:1.6;">
+      <strong>G1 shots</strong> = shots allowed to reach scoring zone (par − 2)<br>
+      Par 3 → <strong style="color:var(--or);">1 shot</strong> (tee only) &nbsp;·&nbsp;
+      Par 4 → <strong style="color:var(--or);">2 shots</strong> (tee + approach) &nbsp;·&nbsp;
+      Par 5 → <strong style="color:var(--or);">3 shots</strong> (tee + lay-up + approach)
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="sct" id="sc-tbl"></table>
+    </div>
+  </div>
+
+  <button class="btn-s" onclick="startRound()">START ROUND →</button>
+</div>
+</div>
+
+<!-- ═══════════ HOLE ═══════════ -->
+<div class="screen" id="screen-hole">
+<div class="hs">
+
+  <div class="rt">
+    <div class="rti"><div class="rtv" id="rt-sc">0</div><div class="rtl">Score</div></div>
+    <div class="rti"><div class="rtv" id="rt-vp">E</div><div class="rtl">vs Par</div></div>
+    <div class="rti"><div class="rtv" id="rt-g1">—</div><div class="rtl">G1%</div></div>
+    <div class="rti"><div class="rtv" id="rt-g2">—</div><div class="rtl">G2%</div></div>
+    <div class="rti"><div class="rtv" id="rt-pt">0</div><div class="rtl">Putts</div></div>
+  </div>
+
+  <div class="hh">
+    <div class="hi">
+      <h2 id="h-n">Hole 1</h2>
+      <p id="h-d">Par 4 · 318 yds · Hdcp 15</p>
+    </div>
+    <div class="sw">
+      <div class="sl">Score</div>
+      <div class="sc2">
+        <button class="sb m" onclick="adjSc(-1)">−</button>
+        <div class="sn" id="h-sc">4</div>
+        <button class="sb p" onclick="adjSc(1)">+</button>
+      </div>
+      <div id="h-vp" style="font-size:12px;font-weight:700;color:var(--gb);">E</div>
+    </div>
+  </div>
+
+  <!-- SCORING METHOD -->
+  <div class="ss">
+    <h3>Scoring Method</h3>
+    <div class="zb">
+      <div class="zt">Game 1 — Enter Scoring Zone</div>
+      <div class="zby">
+        <span class="zn" id="z-n">2</span>
+        <span class="zd" id="z-d">shots to reach zone<br>tee shot + approach</span>
+      </div>
+    </div>
+
+    <div class="dl">Game 1 — Enter Zone</div>
+    <div class="gr">
+      <span class="gl">Result</span>
+      <div class="gbs">
+        <button class="gb" id="g1y" onclick="setG(1,'yes')">✓ In</button>
+        <button class="gb" id="g1n" onclick="setG(1,'no')">✗ Miss</button>
+        <button class="gb" id="g1p" onclick="setG(1,'penalty')">⚑ Pen</button>
+      </div>
+    </div>
+
+    <div class="dl" style="margin-top:12px;">Game 2 — Get Down (≤3 shots from zone)</div>
+    <div class="gr">
+      <span class="gl">Result</span>
+      <div class="gbs">
+        <button class="gb" id="g2y" onclick="setG(2,'yes')">✓ Down</button>
+        <button class="gb" id="g2n" onclick="setG(2,'no')">✗ Miss</button>
+        <button class="gb" id="g2p" onclick="setG(2,'penalty')">⚑ Pen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUTTING -->
+  <div class="ss">
+    <h3>Putting</h3>
+    <div class="cr2">
+      <span class="clbl">Total Putts</span>
+      <div class="ctr">
+        <button class="cb m" onclick="adjC('putts',-1)">−</button>
+        <div class="cn" id="h-pt">2</div>
+        <button class="cb p" onclick="adjC('putts',1)">+</button>
+      </div>
+    </div>
+    <div class="spr">
+      <span class="spl">≤4 ft putt faced?</span>
+      <div class="spbs">
+        <button class="spb" id="sp-m" onclick="setSP('made')">Made</button>
+        <button class="spb" id="sp-x" onclick="setSP('missed')">Missed</button>
+        <button class="spb" id="sp-n" onclick="setSP('na')">N/A</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADDITIONAL -->
+  <div class="ss">
+    <h3>Additional Stats</h3>
+
+    <div class="dl">Fairway in Regulation</div>
+    <div class="gr" id="fir-row">
+      <span class="gl">FIR</span>
+      <div class="gbs">
+        <button class="gb" id="fy" onclick="setSt('fir','yes')">✓ Hit</button>
+        <button class="gb" id="fn" onclick="setSt('fir','no')">✗ Miss</button>
+        <button class="gb" id="fna" onclick="setSt('fir','na')">N/A</button>
+      </div>
+    </div>
+
+    <div class="dl" style="margin-top:10px;">Green in Regulation</div>
+    <div class="gr">
+      <span class="gl">GIR</span>
+      <div class="gbs">
+        <button class="gb" id="gy" onclick="setSt('gir','yes')">✓ Hit</button>
+        <button class="gb" id="gn" onclick="setSt('gir','no')">✗ Miss</button>
+      </div>
+    </div>
+
+    <div class="dl" style="margin-top:10px;">Bunker / Sand Save</div>
+    <div class="gr">
+      <span class="gl">Sand</span>
+      <div class="gbs">
+        <button class="gb" id="si" onclick="setSt('sand','in')">In Bunker</button>
+        <button class="gb" id="ss2" onclick="setSt('sand','saved')">Saved</button>
+        <button class="gb" id="sno" onclick="setSt('sand','no')">None</button>
+      </div>
+    </div>
+
+    <div class="dl" style="margin-top:10px;">Penalty Strokes</div>
+    <div class="cr2" style="margin-bottom:0;">
+      <span class="clbl">Penalties</span>
+      <div class="ctr">
+        <button class="cb m" onclick="adjC('penalties',-1)">−</button>
+        <div class="cn" id="h-pe">0</div>
+        <button class="cb p" onclick="adjC('penalties',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="ss">
+    <h3>Hole Notes</h3>
+    <textarea class="ni" id="h-nt" placeholder="What happened? Key decision? What to work on?"></textarea>
+  </div>
+
+</div>
+<div class="bn">
+  <button class="nb pv" onclick="goH(-1)">← PREV</button>
+  <button class="nb nx" id="btn-nx" onclick="goH(1)">NEXT →</button>
+</div>
+</div>
+
+<!-- ═══════════ SUMMARY ═══════════ -->
+<div class="screen" id="screen-summary">
+<div class="sms">
+
+  <div class="sh2">
+    <h2>Round Complete</h2>
+    <div class="bs" id="sm-sc">—</div>
+    <div class="vp" id="sm-vp">—</div>
+    <div class="mt" id="sm-mt">Marine Drive</div>
+  </div>
+
+  <div class="sg">
+    <div class="sbx"><div class="sbv" id="sg1" style="color:var(--gb);">—</div><div class="sbl">Game 1 %<br>Enter Zone</div></div>
+    <div class="sbx"><div class="sbv" id="sg2" style="color:var(--bl);">—</div><div class="sbl">Game 2 %<br>Get Down</div></div>
+    <div class="sbx"><div class="sbv" id="spt" style="color:var(--gold);">—</div><div class="sbl">Total Putts</div></div>
+    <div class="sbx"><div class="sbv" id="s3p" style="color:var(--red);">—</div><div class="sbl">3-Putts</div></div>
+    <div class="sbx"><div class="sbv" id="sgr" style="color:var(--gb);">—</div><div class="sbl">GIR %</div></div>
+    <div class="sbx"><div class="sbv" id="sfr" style="color:var(--bl);">—</div><div class="sbl">FIR %</div></div>
+    <div class="sbx"><div class="sbv" id="ssp" style="color:var(--gold);">—</div><div class="sbl">Short Putt<br>Made %</div></div>
+    <div class="sbx"><div class="sbv" id="spe" style="color:var(--red);">—</div><div class="sbl">Penalties</div></div>
+  </div>
+
+  <div class="stw">
+    <h3>Hole by Hole</h3>
+    <div style="overflow-x:auto;"><table class="st" id="sm-tbl"></table></div>
+  </div>
+
+  <div class="ab">
+    <h3>Aha Moment / Key Takeaway</h3>
+    <textarea id="sm-aha" placeholder="One thing to take to the range or your next lesson with Todd or Bay Fore…"></textarea>
+  </div>
+
+  <button class="bex" onclick="doExport()">📊 EXPORT TO SPREADSHEET</button>
+  <button class="bnw" onclick="newRound()">+ NEW ROUND</button>
+
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  COURSE DATA — confirmed from official Marine Drive scorecard image
+//  BOTH Silver and Combo play hole 13 as par 5 → both tees par 71
+//  OUT: 4+5+4+3+5+3+4+4+4 = 36
+//  IN:  4+3+5+5+3+4+3+4+4 = 35
+//  TOTAL = 71
+// ══════════════════════════════════════════════
+const COURSE = [
+  {n:1,  par:4, hdcp:15, sv:318, co:341},
+  {n:2,  par:5, hdcp:11, sv:480, co:510},
+  {n:3,  par:4, hdcp:9,  sv:366, co:388},
+  {n:4,  par:3, hdcp:13, sv:142, co:175},
+  {n:5,  par:5, hdcp:7,  sv:502, co:534},
+  {n:6,  par:3, hdcp:5,  sv:178, co:203},
+  {n:7,  par:4, hdcp:1,  sv:382, co:403},
+  {n:8,  par:4, hdcp:17, sv:309, co:324},
+  {n:9,  par:4, hdcp:3,  sv:408, co:433},
+  {n:10, par:4, hdcp:10, sv:363, co:377},
+  {n:11, par:3, hdcp:16, sv:147, co:167},
+  {n:12, par:5, hdcp:12, sv:472, co:500},
+  {n:13, par:5, hdcp:2,  sv:458, co:450},  // par 5 on BOTH tees = confirmed
+  {n:14, par:3, hdcp:18, sv:143, co:143},
+  {n:15, par:4, hdcp:8,  sv:365, co:415},
+  {n:16, par:3, hdcp:14, sv:140, co:165},
+  {n:17, par:4, hdcp:4,  sv:402, co:438},
+  {n:18, par:4, hdcp:6,  sv:387, co:448},
+];
+
+// Game 1 shots = par − 2 (standard Scoring Method)
+const G1_SHOTS = {3:1, 4:2, 5:3};
+const G1_DESC  = {
+  3:'shot to reach zone\ntee shot only',
+  4:'shots to reach zone\ntee shot + approach',
+  5:'shots to reach zone\ntee + lay-up + approach'
+};
+
+function getHoles(tee, n){
+  return COURSE.slice(0,n).map(h=>({...h, yds:tee==='Combo'?h.co:h.sv}));
+}
+
+// ── STATE ──
+let cur=0, total=18, holes=[], data=[], meta={};
+
+function freshData(){
+  return holes.map(h=>({score:h.par,g1:null,g2:null,putts:2,sp:null,fir:null,gir:null,sand:null,pen:0,notes:''}));
+}
+
+// ── INIT ──
+window.onload=()=>{
+  const t=new Date();
+  document.getElementById('r-date').value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  updateCard();
+};
+
+let selH=18;
+function setH(n){
+  selH=n;
+  document.getElementById('b18').className='tgb'+(n===18?' on':'');
+  document.getElementById('b9').className ='tgb'+(n===9?' on':'');
+  updateCard();
+}
+
+function updateCard(){
+  const tee=document.getElementById('r-tee').value;
+  document.getElementById('sc-h').textContent=tee+' Tee — Par 71';
+  const tmp=getHoles(tee,18);
+  let html='<tr><th>Hole</th><th>Par</th><th>Yds</th><th>Hcp</th><th>G1</th></tr>';
+  let op=0,ip=0;
+  tmp.forEach((h,i)=>{
+    const pc=h.par===3?'p3':h.par===4?'p4':'p5';
+    if(i<9)op+=h.par; else ip+=h.par;
+    html+=`<tr><td>${h.n}</td><td class="${pc}">${h.par}</td><td>${h.yds}</td><td>${h.hdcp}</td><td class="g1c">${G1_SHOTS[h.par]}</td></tr>`;
+    if(i===8) html+=`<tr class="sub"><td>OUT</td><td>${op}</td><td>${tee==='Combo'?'3,207':'3,085'}</td><td></td><td></td></tr>`;
+  });
+  html+=`<tr class="sub"><td>IN</td><td>${ip}</td><td>${tee==='Combo'?'2,944':'2,877'}</td><td></td><td></td></tr>`;
+  html+=`<tr class="sub"><td>TOT</td><td>71</td><td>${tee==='Combo'?'6,151':'5,962'}</td><td></td><td></td></tr>`;
+  document.getElementById('sc-tbl').innerHTML=html;
+}
+
+function startRound(){
+  const tee=document.getElementById('r-tee').value;
+  meta={date:document.getElementById('r-date').value, tee, n:selH};
+  total=selH; holes=getHoles(tee,total); data=freshData(); cur=0;
+  buildNav(); showScr('hole', true); renderH();
+}
+
+// ── NAV ──
+function buildNav(){
+  const nav=document.getElementById('hole-nav');
+  nav.innerHTML='';
+  holes.forEach((h,i)=>{
+    const d=document.createElement('div');
+    d.className='hd'; d.id='d'+i; d.textContent=h.n;
+    d.onclick=()=>{save();cur=i;renderH();};
+    nav.appendChild(d);
+  });
+  nav.style.display='flex'; dots();
+}
+
+function dots(){
+  holes.forEach((_,i)=>{
+    const el=document.getElementById('d'+i); if(!el)return;
+    el.className='hd';
+    if(i===cur){el.classList.add('cur');return;}
+    const d=data[i];
+    if(d.g1==='penalty'||d.g2==='penalty'||d.pen>0){el.classList.add('pen');return;}
+    if(d.g1!==null&&d.g2!==null){el.classList.add('done');return;}
+    if(d.g1!==null||d.g2!==null){el.classList.add('part');return;}
+  });
+  const nav=document.getElementById('hole-nav');
+  const el=document.getElementById('d'+cur);
+  if(el&&nav){
+    const dotLeft=el.offsetLeft;
+    const dotW=el.offsetWidth;
+    const navW=nav.offsetWidth;
+    nav.scrollTo({left:dotLeft-navW/2+dotW/2, behavior:'smooth'});
+  }
+}
+
+// ── RENDER HOLE ──
+function renderH(){
+  const h=holes[cur], d=data[cur];
+  document.getElementById('h-n').textContent  = 'Hole '+h.n;
+  document.getElementById('h-d').textContent  = 'Par '+h.par+' · '+h.yds+' yds · Hdcp '+h.hdcp;
+  document.getElementById('tb-hole').textContent=(cur+1)+'/'+total;
+  document.getElementById('tb-sub').textContent=meta.date||'';
+
+  // Zone banner
+  document.getElementById('z-n').textContent=G1_SHOTS[h.par];
+  const[l1,l2]=G1_DESC[h.par].split('\n');
+  document.getElementById('z-d').innerHTML=l1+'<br>'+l2;
+
+  // Score
+  document.getElementById('h-sc').textContent=d.score;
+  paintVsPar(d.score,h.par);
+
+  // Counters
+  document.getElementById('h-pt').textContent=d.putts;
+  document.getElementById('h-pe').textContent=d.pen;
+  document.getElementById('h-nt').value=d.notes;
+
+  // Games
+  paintG(1,d.g1); paintG(2,d.g2);
+
+  // Short putt
+  document.getElementById('sp-m').className='spb'+(d.sp==='made'?' sm':'');
+  document.getElementById('sp-x').className='spb'+(d.sp==='missed'?' sx':'');
+  document.getElementById('sp-n').className='spb'+(d.sp==='na'?' sna':'');
+
+  // FIR (dim on par 3)
+  document.getElementById('fir-row').style.opacity=h.par===3?'0.3':'1';
+  paintFIR(d.fir); paintGIR(d.gir); paintSand(d.sand);
+
+  // Next/Finish
+  const btn=document.getElementById('btn-nx');
+  if(cur===total-1){btn.textContent='FINISH ✓';btn.className='nb fn';}
+  else{btn.textContent='NEXT →';btn.className='nb nx';}
+
+  updRT(); dots();
+}
+
+function paintVsPar(sc,par){
+  const diff=sc-par;
+  const lbl={'-2':'−2 Eagle','-1':'−1 Birdie','0':'Even','1':'+1 Bogey','2':'+2 Double'};
+  const col={'-2':'#7d3c98','-1':'var(--bl)','0':'var(--gb)','1':'#b7950b','2':'var(--red)'};
+  const k=Math.max(-2,Math.min(2,diff)).toString();
+  const el=document.getElementById('h-vp');
+  el.textContent=lbl[k]||(diff>0?'+'+diff+' Triple+':diff+'');
+  el.style.color=col[k]||'#922b21';
+}
+
+function paintG(g,val){
+  const ids=['y','n','p'], vals=['yes','no','penalty'], cls=['sy','sn2','sp'];
+  ids.forEach((id,i)=>{
+    const el=document.getElementById('g'+g+id);
+    el.className='gb'+(val===vals[i]?' '+cls[i]:'');
+  });
+}
+
+function paintFIR(val){
+  document.getElementById('fy').className ='gb'+(val==='yes'?' sy':'');
+  document.getElementById('fn').className ='gb'+(val==='no'?' sn2':'');
+  document.getElementById('fna').className='gb'+(val==='na'?' sna':'');
+}
+function paintGIR(val){
+  document.getElementById('gy').className='gb'+(val==='yes'?' sy':'');
+  document.getElementById('gn').className='gb'+(val==='no'?' sn2':'');
+}
+function paintSand(val){
+  document.getElementById('si').className ='gb'+(val==='in'?' sp':'');
+  document.getElementById('ss2').className='gb'+(val==='saved'?' sy':'');
+  document.getElementById('sno').className='gb'+(val==='no'?' sn2':'');
+}
+
+function updRT(){
+  let sc=0,par=0,g1y=0,g1t=0,g2y=0,g2t=0,pt=0;
+  data.forEach((d,i)=>{
+    if(i>cur)return;
+    sc+=d.score;par+=holes[i].par;pt+=d.putts;
+    if(d.g1!==null){g1t++;if(d.g1==='yes')g1y++;}
+    if(d.g2!==null){g2t++;if(d.g2==='yes')g2y++;}
+  });
+  const diff=sc-par;
+  document.getElementById('rt-sc').textContent=sc;
+  document.getElementById('rt-vp').textContent=diff===0?'E':(diff>0?'+'+diff:diff);
+  document.getElementById('rt-g1').textContent=g1t?Math.round(g1y/g1t*100)+'%':'—';
+  document.getElementById('rt-g2').textContent=g2t?Math.round(g2y/g2t*100)+'%':'—';
+  document.getElementById('rt-pt').textContent=pt;
+}
+
+// ── INPUTS ──
+function save(){if(data[cur])data[cur].notes=document.getElementById('h-nt').value;}
+
+function adjSc(d){
+  data[cur].score=Math.max(1,data[cur].score+d);
+  document.getElementById('h-sc').textContent=data[cur].score;
+  paintVsPar(data[cur].score,holes[cur].par); updRT();
+}
+function adjC(f,d){
+  const fieldMap={putts:'putts',penalties:'pen'};
+  const idMap={putts:'h-pt',penalties:'h-pe'};
+  const dk=fieldMap[f]||f;
+  const eid=idMap[f]||('h-'+f);
+  data[cur][dk]=Math.max(0,(data[cur][dk]||0)+d);
+  document.getElementById(eid).textContent=data[cur][dk];
+  if(dk==='pen')dots();
+}
+function setG(g,val){
+  data[cur]['g'+g]=val; paintG(g,val); dots(); updRT();
+}
+function setSP(val){
+  data[cur].sp=val;
+  document.getElementById('sp-m').className='spb'+(val==='made'?' sm':'');
+  document.getElementById('sp-x').className='spb'+(val==='missed'?' sx':'');
+  document.getElementById('sp-n').className='spb'+(val==='na'?' sna':'');
+}
+function setSt(stat,val){
+  data[cur][stat]=val;
+  if(stat==='fir')paintFIR(val);
+  else if(stat==='gir')paintGIR(val);
+  else if(stat==='sand')paintSand(val);
+}
+function goH(d){
+  save();
+  if(d>0&&cur===total-1){showSummary();return;}
+  cur=Math.max(0,Math.min(total-1,cur+d)); renderH();
+}
+
+// ── SUMMARY ──
+function showSummary(){
+  let tSc=0,tPar=0,g1y=0,g1t=0,g2y=0,g2t=0;
+  let pt=0,tp=0,pen=0,gy=0,fy=0,ft=0,spm=0,spt=0,ssy=0,sst=0;
+  data.forEach((d,i)=>{
+    const h=holes[i];
+    tSc+=d.score;tPar+=h.par;pt+=d.putts;pen+=d.pen;
+    if(d.putts>=3)tp++;
+    if(d.g1!==null){g1t++;if(d.g1==='yes')g1y++;}
+    if(d.g2!==null){g2t++;if(d.g2==='yes')g2y++;}
+    if(d.gir==='yes')gy++;
+    if(h.par>3){ft++;if(d.fir==='yes')fy++;}
+    if(d.sp==='made'||d.sp==='missed'){spt++;if(d.sp==='made')spm++;}
+    if(d.sand==='in'||d.sand==='saved'){sst++;if(d.sand==='saved')ssy++;}
+  });
+  const diff=tSc-tPar;
+  const ds=diff===0?'Even':(diff>0?'+'+diff:''+diff);
+  document.getElementById('sm-sc').textContent=tSc;
+  document.getElementById('sm-vp').textContent=ds+' (Par '+tPar+')';
+  document.getElementById('sm-mt').textContent=meta.date+' · '+meta.tee+' · '+total+' holes';
+  document.getElementById('sg1').textContent=g1t?Math.round(g1y/g1t*100)+'%':'—';
+  document.getElementById('sg2').textContent=g2t?Math.round(g2y/g2t*100)+'%':'—';
+  document.getElementById('spt').textContent=pt;
+  document.getElementById('s3p').textContent=tp;
+  document.getElementById('sgr').textContent=Math.round(gy/total*100)+'%';
+  document.getElementById('sfr').textContent=ft?Math.round(fy/ft*100)+'%':'—';
+  document.getElementById('ssp').textContent=spt?Math.round(spm/spt*100)+'%':'—';
+  document.getElementById('spe').textContent=pen;
+
+  function sc(score,par){
+    const d=score-par;
+    if(d<=-2)return 'te';if(d===-1)return 'tb';if(d===0)return 'tp';
+    if(d===1)return 'tbo';if(d===2)return 'td2';return 'tw';
+  }
+  function yn(v){
+    if(v===null||v===undefined)return '—';
+    if(v==='yes'||v==='made'||v==='saved')return '✓';
+    if(v==='no'||v==='missed')return '✗';
+    if(v==='penalty'||v==='in')return '⚑';
+    if(v==='na')return 'n/a';
+    return v;
+  }
+
+  let outSc=0,outPt=0,inSc=0,inPt=0;
+  let rows='<tr><th>H</th><th>Par</th><th>G1</th><th>Sc</th><th>±</th><th>Pt</th><th>G2</th><th>FIR</th><th>GIR</th></tr>';
+  data.forEach((d,i)=>{
+    const h=holes[i],df=d.score-h.par,ds2=df===0?'E':(df>0?'+'+df:''+df);
+    if(i<9){outSc+=d.score;outPt+=d.putts;}else{inSc+=d.score;inPt+=d.putts;}
+    rows+=`<tr><td>${h.n}</td><td>${h.par}</td><td>${yn(d.g1)}</td><td class="${sc(d.score,h.par)}">${d.score}</td><td class="${sc(d.score,h.par)}">${ds2}</td><td>${d.putts}</td><td>${yn(d.g2)}</td><td>${h.par===3?'—':yn(d.fir)}</td><td>${yn(d.gir)}</td></tr>`;
+    if(i===8&&total===18){
+      const op=holes.slice(0,9).reduce((s,h)=>s+h.par,0);
+      const od=outSc-op;
+      rows+=`<tr class="sr"><td colspan="2">OUT</td><td>${g1t?Math.round(g1y/g1t*100)+'%':'—'}</td><td>${outSc}</td><td>${od===0?'E':(od>0?'+'+od:''+od)}</td><td>${outPt}</td><td></td><td></td><td></td></tr>`;
+    }
+  });
+  if(total===18){
+    const ip=holes.slice(9).reduce((s,h)=>s+h.par,0);
+    const id=inSc-ip;
+    rows+=`<tr class="sr"><td colspan="2">IN</td><td>${g2t?Math.round(g2y/g2t*100)+'%':'—'}</td><td>${inSc}</td><td>${id===0?'E':(id>0?'+'+id:''+id)}</td><td>${inPt}</td><td></td><td></td><td></td></tr>`;
+  }
+  const fd=tSc-tPar;
+  rows+=`<tr class="sr"><td colspan="2">TOT</td><td>${g1t?Math.round(g1y/g1t*100)+'%':'—'}</td><td>${tSc}</td><td>${fd===0?'E':(fd>0?'+'+fd:''+fd)}</td><td>${pt}</td><td>${g2t?Math.round(g2y/g2t*100)+'%':'—'}</td><td>${ft?Math.round(fy/ft*100)+'%':'—'}</td><td>${Math.round(gy/total*100)+'%'}</td></tr>`;
+  document.getElementById('sm-tbl').innerHTML=rows;
+  document.getElementById('hole-nav').style.display='none';
+  showScr('summary', true);
+}
+
+// ── EXPORT ──
+function doExport(){
+  const aha=document.getElementById('sm-aha').value.replace(/,/g,';');
+  let tSc=0,tPar=0,g1y=0,g1t=0,g2y=0,g2t=0;
+  let pt=0,tp=0,pen=0,gy=0,fy=0,ft=0,spm=0,spt=0,ssy=0,sst=0;
+  data.forEach((d,i)=>{
+    const h=holes[i];tSc+=d.score;tPar+=h.par;pt+=d.putts;pen+=d.pen;
+    if(d.putts>=3)tp++;
+    if(d.g1!==null){g1t++;if(d.g1==='yes')g1y++;}
+    if(d.g2!==null){g2t++;if(d.g2==='yes')g2y++;}
+    if(d.gir==='yes')gy++;
+    if(h.par>3){ft++;if(d.fir==='yes')fy++;}
+    if(d.sp==='made'||d.sp==='missed'){spt++;if(d.sp==='made')spm++;}
+    if(d.sand==='in'||d.sand==='saved'){sst++;if(d.sand==='saved')ssy++;}
+  });
+  let hdr='Date,Tee,Holes,Score,Par,VsPar,G1_Yes,G1_Total,G1_Pct,G2_Yes,G2_Total,G2_Pct,Putts,3Putts,Penalties,GIR_Pct,FIR_Pct,ShortPutt_Pct,SandSave_Pct';
+  for(let i=1;i<=total;i++) hdr+=`,H${i}_Score,H${i}_G1,H${i}_G2,H${i}_Putts,H${i}_FIR,H${i}_GIR,H${i}_Pen`;
+  hdr+=',Aha\n';
+
+  let row=`${meta.date},${meta.tee},${total},${tSc},${tPar},${tSc-tPar},${g1y},${g1t},${g1t?Math.round(g1y/g1t*100):0},${g2y},${g2t},${g2t?Math.round(g2y/g2t*100):0},${pt},${tp},${pen},${Math.round(gy/total*100)},${ft?Math.round(fy/ft*100):0},${spt?Math.round(spm/spt*100):0},${sst?Math.round(ssy/sst*100):0}`;
+  data.forEach((d,i)=>{
+    const h=holes[i];
+    row+=`,${d.score},${d.g1||'—'},${d.g2||'—'},${d.putts},${h.par===3?'N/A':d.fir||'—'},${d.gir||'—'},${d.pen}`;
+  });
+  row+=`,"${aha}"\n`;
+
+  const blob=new Blob([hdr+row],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`marine-drive-${meta.date||'round'}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function showScr(n, resetScroll){
+  ['setup','hole','summary'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  if(resetScroll) window.scrollTo(0,0);
+}
+function newRound(){document.getElementById('hole-nav').style.display='none';showScr('setup', true);}
+</script>
+</body>
+</html>
